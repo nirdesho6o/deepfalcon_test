@@ -34,9 +34,16 @@ BETA = 0.001
 
 def loss_function(recon, x, mu, logvar):
 
-    weight = 1 + 20 * x   # emphasize active pixels
+    # weighted reconstruction loss
+    weight = 1 + 20 * x
+    recon_loss = ((recon - x)**2 * weight).mean()
 
-    loss = ((recon - x)**2 * weight).mean()
+    # KL divergence
+    kl = -0.5 * torch.mean(
+        1 + logvar - mu.pow(2) - logvar.exp()
+    )
+
+    loss = recon_loss + BETA * kl
 
     return loss
 
