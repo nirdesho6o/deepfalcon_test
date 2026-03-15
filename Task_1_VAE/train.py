@@ -12,7 +12,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 print("Loading subset from HDF5...")
 
-with h5py.File("data/quark-gluon.hdf5", "r") as f:
+with h5py.File("../data/quark-gluon.hdf5", "r") as f:
     data = f["X_jets"][:10000]
 
 data = np.transpose(data, (0,3,1,2))

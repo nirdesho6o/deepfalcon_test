@@ -2,7 +2,7 @@ import h5py
 import numpy as np
 import matplotlib.pyplot as plt
 
-file_path = "data/quark-gluon.hdf5"
+file_path = "../data/quark-gluon.hdf5"
 
 with h5py.File(file_path, "r") as f:
 

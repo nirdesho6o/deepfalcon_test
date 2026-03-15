@@ -5,10 +5,10 @@ from dataset import JetDataset
 from model import VAE
 
 
-dataset = JetDataset("data/quark-gluon.hdf5")
+dataset = JetDataset("../data/quark-gluon.hdf5")
 
 model = VAE()
-model.load_state_dict(torch.load("vae_model.pt"))
+model.load_state_dict(torch.load("../data/vae_model.pt"))
 model.eval()
 
 x = dataset[0].unsqueeze(0)

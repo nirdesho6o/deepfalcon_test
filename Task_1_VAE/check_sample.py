@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from dataset import JetDataset
 
-dataset = JetDataset("data/quark-gluon.hdf5")
+dataset = JetDataset("../data/quark-gluon.hdf5")
 
 x = dataset[0].numpy()
 

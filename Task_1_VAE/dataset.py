@@ -40,7 +40,7 @@ class JetDataset(Dataset):
 
 if __name__ == "__main__":
 
-    dataset = JetDataset("data/quark-gluon.hdf5")
+    dataset = JetDataset("../data/quark-gluon.hdf5")
 
     print("Dataset size:", len(dataset))
 
