@@ -1,28 +1,42 @@
 import h5py
+from sympy import limit
 import torch
 from torch_geometric.data import Dataset
 from build_graph import image_to_graph
-
+import os
+CACHE_FILE = "jet_graph_cache.pt"
 
 class JetGraphDataset(Dataset):
 
-    def __init__(self, file_path, limit=5000):
+    def __init__(self, file_path, limit=2000):
 
-        self.file = h5py.File(file_path, "r")
+        if os.path.exists(CACHE_FILE):
 
-        self.images = self.file["X_jets"]
-        self.labels = self.file["y"]
+            print("Loading cached graphs...")
+            self.graphs = torch.load(CACHE_FILE)
 
-        self.limit = limit
+        else:
+
+            print("Precomputing graphs...")
+
+            self.graphs = []
+
+            for i in range(limit):
+
+                image = torch.tensor(self.images[i], dtype=torch.float32).permute(2,0,1)
+                label = int(self.labels[i])
+
+                graph = image_to_graph(image, label)
+
+                self.graphs.append(graph)
+            torch.save(self.graphs, CACHE_FILE)
+
+        print("Finished building graphs.")
+
 
     def len(self):
         return self.limit
 
+
     def get(self, idx):
-
-        image = torch.tensor(self.images[idx]).permute(2,0,1)
-        label = int(self.labels[idx])
-
-        graph = image_to_graph(image, label)
-
-        return graph
+        return self.graphs[idx]

@@ -11,9 +11,13 @@ def image_to_graph(image, label, k=8):
 
     image = image.numpy()
 
-    # sum channels to find active pixels
     mask = image.sum(axis=0) > 0
     coords = np.argwhere(mask)
+    MAX_NODES = 80
+
+    if len(coords) > MAX_NODES:
+        idx = np.random.choice(len(coords), MAX_NODES, replace=False)
+        coords = coords[idx]
 
     features = []
 
@@ -26,8 +30,7 @@ def image_to_graph(image, label, k=8):
 
     features = torch.tensor(features, dtype=torch.float)
 
-    # build kNN graph using spatial coordinates
-    edge_index = knn_graph(features[:, :2], k=k)
+    edge_index = knn_graph(features[:, :2], k=5)
 
     data = Data(x=features, edge_index=edge_index, y=torch.tensor([label]))
 

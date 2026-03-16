@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-dataset = JetGraphDataset("../data/quark-gluon.hdf5", limit=5000)
+dataset = JetGraphDataset("../data/quark-gluon.hdf5", limit=500)
 
 loader = DataLoader(dataset, batch_size=32, shuffle=True)
 
