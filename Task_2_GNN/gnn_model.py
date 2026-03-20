@@ -1,29 +1,58 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import GraphConv, global_mean_pool
-
+from torch_geometric.nn import SAGEConv, BatchNorm, global_max_pool, global_mean_pool
 
 class JetGNN(nn.Module):
-
     def __init__(self):
-
         super().__init__()
 
-        self.conv1 = GraphConv(5, 64)
-        self.conv2 = GraphConv(64, 64)
+        # -------- GNN layers (Upgraded to SAGEConv) --------
+        self.conv1 = SAGEConv(6, 64)
+        self.bn1 = BatchNorm(64)
+        
+        self.conv2 = SAGEConv(64, 64)
+        self.bn2 = BatchNorm(64)
+        
+        self.conv3 = SAGEConv(64, 64)
+        self.bn3 = BatchNorm(64)
 
-        self.lin1 = nn.Linear(64, 32)
-        self.lin2 = nn.Linear(32, 2)
+        # -------- MLP head --------
+        # Input is 128 because we concatenate max (64) and mean (64) pooling
+        self.lin1 = nn.Linear(128, 64)
+        self.lin2 = nn.Linear(64, 2)
+
+        # -------- Regularization --------
+        self.dropout = nn.Dropout(p=0.3)
 
     def forward(self, x, edge_index, batch):
+        # -------- Message Passing with Normalization --------
+        # Layer 1
+        x = self.conv1(x, edge_index)
+        x = self.bn1(x)
+        x = F.relu(x)
 
-        x = F.relu(self.conv1(x, edge_index))
-        x = F.relu(self.conv2(x, edge_index))
+        # Layer 2
+        x = self.conv2(x, edge_index)
+        x = self.bn2(x)
+        x = F.relu(x)
 
-        x = global_mean_pool(x, batch)
+        # Layer 3
+        x = self.conv3(x, edge_index)
+        x = self.bn3(x)
+        x = F.relu(x)
 
+        # -------- Advanced Pooling --------
+        # Capture both the highest energy hits and the average radiation pattern
+        x_max = global_max_pool(x, batch)
+        x_mean = global_mean_pool(x, batch)
+        
+        # Shape goes from [batch_size, 64] to [batch_size, 128]
+        x = torch.cat([x_max, x_mean], dim=1) 
+
+        # -------- Classifier --------
         x = F.relu(self.lin1(x))
+        x = self.dropout(x)
         x = self.lin2(x)
 
         return x
