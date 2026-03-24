@@ -47,26 +47,36 @@ for epoch in range(EPOCHS):
 
 # -------- VISUALIZATION --------
 # The mentors explicitly requested a side-by-side comparison
-def plot_reconstruction(model, dataloader, num_images=5):
+def plot_reconstruction(model, dataloader, digit1=0, digit2=4, num_images=6):
     model.eval()
     
     # Grab one batch of images
     dataiter = iter(dataloader)
     images, labels = next(dataiter)
-    images = images.to(device)
+    
+    # Separate the batch by digit to ensure we get a mix
+    images_d1 = images[labels == digit1]
+    images_d2 = images[labels == digit2]
+    labels_d1 = labels[labels == digit1]
+    labels_d2 = labels[labels == digit2]
+    
+    # Take half from the first digit, half from the second
+    half = num_images // 2
+    selected_images = torch.cat([images_d1[:half], images_d2[:half]], dim=0).to(device)
+    selected_labels = torch.cat([labels_d1[:half], labels_d2[:half]], dim=0)
     
     with torch.no_grad():
-        reconstructed, _ = model(images)
+        reconstructed, _ = model(selected_images)
     
     # Move to CPU for matplotlib
-    images = images.cpu().numpy()
+    selected_images = selected_images.cpu().numpy()
     reconstructed = reconstructed.cpu().numpy()
     
-    fig, axes = plt.subplots(2, num_images, figsize=(10, 4))
+    fig, axes = plt.subplots(2, num_images, figsize=(12, 4))
     for i in range(num_images):
         # Top row: Originals
-        axes[0, i].imshow(images[i].squeeze(), cmap='gray')
-        axes[0, i].set_title(f"Original: {labels[i].item()}")
+        axes[0, i].imshow(selected_images[i].squeeze(), cmap='gray')
+        axes[0, i].set_title(f"Original: {selected_labels[i].item()}")
         axes[0, i].axis('off')
         
         # Bottom row: Reconstructions
@@ -75,9 +85,9 @@ def plot_reconstruction(model, dataloader, num_images=5):
         axes[1, i].axis('off')
         
     plt.tight_layout()
-    plt.savefig("mnist_reconstruction_baseline.png")
-    print("--> Saved reconstruction plot to 'mnist_reconstruction_baseline.png'")
+    plt.savefig("mnist_reconstruction_swd.png")
+    print("--> Saved balanced reconstruction plot to 'mnist_reconstruction_swd.png'")
     plt.show()
 
 # Run the visualization after training
-plot_reconstruction(model, train_loader)
+plot_reconstruction(model, train_loader, digit1=0, digit2=4)
