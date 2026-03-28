@@ -7,18 +7,16 @@ from gnn_model import JetGNN
 
 device = torch.device("cpu")
 
-# -------- CRITICAL FIX: RNG SEED --------
-# This guarantees your test split is perfectly identical to the 
-# validation split used during training, preventing data leakage.
+
 torch.manual_seed(42)
 
-# SAME SETTINGS as training
+
 LIMIT = 5000
 SPLIT = int(LIMIT * 0.8)
 
 dataset = JetGraphDataset("../data/quark-gluon.hdf5", limit=LIMIT)
 
-# Must match the shuffle step in train_gnn.py exactly
+
 dataset = dataset.shuffle() 
 
 test_dataset = dataset[SPLIT:]
@@ -27,7 +25,6 @@ test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 # -------- MODEL --------
 model = JetGNN().to(device)
 
-# Load the checkpointed weights, not the final epoch weights
 model.load_state_dict(torch.load("gnn_model.pt"))
 model.eval()
 

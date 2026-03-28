@@ -9,14 +9,11 @@ from sklearn.metrics import roc_auc_score
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# -------- DATA --------
 LIMIT = 5000
 SPLIT = int(LIMIT * 0.8)
 
-# Load dataset
 dataset = JetGraphDataset("../data/quark-gluon.hdf5", limit=LIMIT)
 
-# CRITICAL FIX: Shuffle indices before splitting to prevent class imbalance
 dataset = dataset.shuffle()
 
 train_dataset = dataset[:SPLIT]
@@ -27,9 +24,7 @@ val_loader   = DataLoader(val_dataset, batch_size=32, shuffle=False)
 
 # -------- MODEL --------
 model = JetGNN().to(device)
-# Lowered learning rate for stability with GNNs
 optimizer = torch.optim.Adam(model.parameters(), lr=5e-4)
-# Added scheduler to reduce learning rate if validation loss plateaus
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
 
 EPOCHS = 15
@@ -70,26 +65,26 @@ for epoch in range(EPOCHS):
             batch = batch.to(device)
             out = model(batch.x, batch.edge_index, batch.batch)
             
-            # Track validation loss
+
             loss = F.cross_entropy(out, batch.y)
             total_val_loss += loss.item()
 
-            # Get probabilities for class 1 (Gluon/Quark depending on your label map) for AUC
+
             probs = F.softmax(out, dim=1)[:, 1]
             all_preds.extend(probs.cpu().numpy())
             all_labels.extend(batch.y.cpu().numpy())
 
     avg_val_loss = total_val_loss / len(val_loader)
     
-    # Calculate Metrics
+
     val_auc = roc_auc_score(all_labels, all_preds)
     
     print(f"Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f} | Val AUC: {val_auc:.4f}")
 
-    # Step the scheduler based on validation loss
+
     scheduler.step(avg_val_loss)
 
-    # -------- SAVE BEST MODEL --------
+
     if val_auc > best_val_auc:
         best_val_auc = val_auc
         torch.save(model.state_dict(), "gnn_model.pt")
