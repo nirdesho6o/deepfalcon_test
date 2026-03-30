@@ -79,9 +79,13 @@ def plot_reconstruction(model, dataloader, digit1=0, digit2=4, num_images=6):
         axes[1, i].axis('off')
         
     plt.tight_layout()
-    plt.savefig("mnist_reconstruction_swd.png")
-    print("--> Saved balanced reconstruction plot to 'mnist_reconstruction_swd.png'")
+    plt.savefig("mnist_reconstruction.png")
+    print("--> Saved balanced reconstruction plot to 'mnist_reconstruction.png'")
     plt.show()
 
 
 plot_reconstruction(model, train_loader, digit1=0, digit2=4)
+
+
+torch.save(model.state_dict(), "ae_swd.pt")
+print("--> Saved Phase 2 Autoencoder weights to 'ae_swd.pt'")

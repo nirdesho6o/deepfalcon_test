@@ -27,3 +27,18 @@ class MNISTAutoencoder(nn.Module):
         z = self.encoder(x)
         x_reconstructed = self.decoder(z)
         return x_reconstructed, z
+    
+class LatentGenerator(nn.Module):
+    def __init__(self, noise_dim=16, latent_dim=16):
+        super().__init__()
+        # A simple Multi-Layer Perceptron (MLP) acts as our transport map
+        self.net = nn.Sequential(
+            nn.Linear(noise_dim, 64),
+            nn.ReLU(),
+            nn.Linear(64, 64),
+            nn.ReLU(),
+            nn.Linear(64, latent_dim)
+        )
+
+    def forward(self, noise):
+        return self.net(noise)
